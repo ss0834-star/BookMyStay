@@ -1,8 +1,4 @@
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 abstract class Room {
     protected int beds;
@@ -122,7 +118,7 @@ class BookingService {
         allocatedRooms = new HashMap<>();
     }
 
-    public void confirmBooking(Reservation r) {
+    public String confirmBooking(Reservation r) {
         String type = r.getRoomType();
         if (inventory.getAvailability(type) > 0) {
             inventory.decrementAvailability(type);
@@ -133,8 +129,10 @@ class BookingService {
 
             System.out.println("Reservation Confirmed for " + r.getGuestName() +
                     " in " + type + " (Room ID: " + roomId + ")");
+            return roomId;
         } else {
             System.out.println("No availability for " + type + " requested by " + r.getGuestName());
+            return null;
         }
     }
 
@@ -152,10 +150,48 @@ class BookingService {
     }
 }
 
+class Service {
+    private String name;
+    private double cost;
+
+    public Service(String name, double cost) {
+        this.name = name;
+        this.cost = cost;
+    }
+
+    public String getName() { return name; }
+    public double getCost() { return cost; }
+}
+
+class AddOnServiceManager {
+    private HashMap<String, List<Service>> reservationServices;
+
+    public AddOnServiceManager() { reservationServices = new HashMap<>(); }
+
+    public void addService(String roomId, Service service) {
+        reservationServices.putIfAbsent(roomId, new ArrayList<>());
+        reservationServices.get(roomId).add(service);
+    }
+
+    public void displayServices() {
+        System.out.println("\nAdd-On Services:");
+        for (String roomId : reservationServices.keySet()) {
+            List<Service> services = reservationServices.get(roomId);
+            double totalCost = 0;
+            System.out.println("Room ID: " + roomId);
+            for (Service s : services) {
+                System.out.println("- " + s.getName() + ": $" + s.getCost());
+                totalCost += s.getCost();
+            }
+            System.out.println("Total Add-On Cost: $" + totalCost + "\n");
+        }
+    }
+}
+
 public class BookMyStayApp {
     public static void main(String[] args) {
         System.out.println("Welcome to Book My Stay");
-        System.out.println("Hotel Booking System v6.1\n");
+        System.out.println("Hotel Booking System v7.1\n");
 
         Room single = new SingleRoom();
         Room doubleRoom = new DoubleRoom();
@@ -174,17 +210,22 @@ public class BookMyStayApp {
         bookingQueue.addRequest(new Reservation("Alice", "Single Room"));
         bookingQueue.addRequest(new Reservation("Bob", "Double Room"));
         bookingQueue.addRequest(new Reservation("Charlie", "Suite Room"));
-        bookingQueue.addRequest(new Reservation("David", "Suite Room"));
-
         bookingQueue.displayQueue();
 
         BookingService service = new BookingService(inventory);
+        AddOnServiceManager addOnManager = new AddOnServiceManager();
+
         while (bookingQueue.hasPendingRequests()) {
             Reservation r = bookingQueue.processNext();
-            service.confirmBooking(r);
+            String roomId = service.confirmBooking(r);
+            if (roomId != null) {
+                addOnManager.addService(roomId, new Service("Breakfast", 20));
+                addOnManager.addService(roomId, new Service("Airport Pickup", 50));
+            }
         }
 
         service.displayAllocatedRooms();
+        addOnManager.displayServices();
         inventory.displayInventory();
     }
 }
