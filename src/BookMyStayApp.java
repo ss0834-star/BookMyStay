@@ -39,22 +39,18 @@ class SuiteRoom extends Room {
 class RoomInventory {
     private HashMap<String, Integer> inventory;
 
-    public RoomInventory() {
-        inventory = new HashMap<>();
-    }
+    public RoomInventory() { inventory = new HashMap<>(); }
 
-    public void addRoomType(String roomType, int count) {
-        inventory.put(roomType, count);
-    }
+    public void addRoomType(String roomType, int count) { inventory.put(roomType, count); }
 
-    public int getAvailability(String roomType) {
-        return inventory.getOrDefault(roomType, 0);
-    }
+    public int getAvailability(String roomType) { return inventory.getOrDefault(roomType, 0); }
 
     public void updateAvailability(String roomType, int count) {
-        if (inventory.containsKey(roomType)) {
-            inventory.put(roomType, count);
-        }
+        if (inventory.containsKey(roomType)) inventory.put(roomType, count);
+    }
+
+    public HashMap<String, Integer> getInventorySnapshot() {
+        return new HashMap<>(inventory);
     }
 
     public void displayInventory() {
@@ -66,10 +62,26 @@ class RoomInventory {
     }
 }
 
+class RoomSearch {
+    private RoomInventory inventory;
+
+    public RoomSearch(RoomInventory inventory) { this.inventory = inventory; }
+
+    public void displayAvailableRooms(Room[] rooms) {
+        System.out.println("Available Rooms for Guests:\n");
+        for (Room room : rooms) {
+            if (inventory.getAvailability(room.getRoomType()) > 0) {
+                room.displayDetails();
+                System.out.println("Available: " + inventory.getAvailability(room.getRoomType()) + "\n");
+            }
+        }
+    }
+}
+
 public class BookMyStayApp {
     public static void main(String[] args) {
         System.out.println("Welcome to Book My Stay");
-        System.out.println("Hotel Booking System v3.1\n");
+        System.out.println("Hotel Booking System v4.1\n");
 
         Room single = new SingleRoom();
         Room doubleRoom = new DoubleRoom();
@@ -78,16 +90,12 @@ public class BookMyStayApp {
         RoomInventory inventory = new RoomInventory();
         inventory.addRoomType(single.getRoomType(), 10);
         inventory.addRoomType(doubleRoom.getRoomType(), 5);
-        inventory.addRoomType(suite.getRoomType(), 2);
+        inventory.addRoomType(suite.getRoomType(), 0); // Suite currently unavailable
 
-        single.displayDetails();
-        System.out.println("Available Rooms: " + inventory.getAvailability(single.getRoomType()) + "\n");
+        Room[] allRooms = { single, doubleRoom, suite };
 
-        doubleRoom.displayDetails();
-        System.out.println("Available Rooms: " + inventory.getAvailability(doubleRoom.getRoomType()) + "\n");
-
-        suite.displayDetails();
-        System.out.println("Available Rooms: " + inventory.getAvailability(suite.getRoomType()) + "\n");
+        RoomSearch search = new RoomSearch(inventory);
+        search.displayAvailableRooms(allRooms);
 
         inventory.displayInventory();
     }
