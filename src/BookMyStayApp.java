@@ -297,7 +297,7 @@ public class BookMyStayApp {
         BookingHistory bookingHistory = new BookingHistory();
 
         Reservation[] reservations = {
-                new Reservation("Alice", "Single Room"),
+                new Reservation("Alice", "Single Roomm"),
                 new Reservation("Bob", "Single Room"),
                 new Reservation("Charlie", "Double Room"),
                 new Reservation("David", "Double Room"),
